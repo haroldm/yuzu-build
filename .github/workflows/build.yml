@@ -70,6 +70,7 @@ jobs:
         run: |
           unzip yuzu-src.zip
           cd yuzu
+          chmod a+x ./.ci/scripts/linux/*.sh
           ./.ci/scripts/linux/exec.sh
           RELEASE_NAME=$(BuildName) ./.ci/scripts/linux/upload.sh
 
@@ -81,7 +82,7 @@ jobs:
   
   release:
     # needs: [build-windows, build-linux]
-    needs: [build-linux]
+    needs: [build-windows]
     runs-on: ubuntu-latest
     steps:
       - name: Create release
