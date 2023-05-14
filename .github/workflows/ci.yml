@@ -9,6 +9,12 @@ jobs:
   build-windows:
     runs-on: windows-2022
     steps:
+      - uses: actions/checkout@v3
+        with:
+          # TODO replace with env variable
+          repository: haroldm/yuzu-build
+          submodules: recursive
+          fetch-depth: 0
       - uses: ./.github/workflows/composite-actions/merge
       - uses: ./.github/workflows/composite-actions/build-msvc
 
