@@ -9,8 +9,8 @@ jobs:
   build-windows:
     runs-on: windows-2022
     steps:
-      - uses: ./.github/workflows/composite-actions/merge.yml
-      - uses: ./.github/workflows/composite-actions/build-msvc.yml
+      - uses: ./.github/workflows/composite-actions/merge
+      - uses: ./.github/workflows/composite-actions/build-msvc
 
   # build-linux:
   #   runs-on: ubuntu-latest
