@@ -14,10 +14,10 @@ jobs:
     runs-on: windows-2022
     steps:
       - name: Download patched src
-        uses: actions/cache@v3
+        uses: actions/cache/restore@v3
         with:
           key: yuzu-src
-          path: ./
+          path: yuzu-src.zip
           fail-on-cache-miss: true
       - name: Install dependencies
         # due to how chocolatey works, only cmd.exe is supported here
