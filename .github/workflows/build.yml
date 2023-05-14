@@ -1,0 +1,82 @@
+name: 'yuzu'
+run-name: 'Build yuzu'
+
+on:
+  push:
+  workflow_run:
+    workflows: [patch]
+    types:
+      - completed
+
+jobs:
+
+  build-windows:
+    runs-on: windows-2022
+    steps:
+      - name: Download patched src
+        id: cache-src
+        uses: actions/cache@v3
+        with:
+          path: yuzu-src.zip
+      - uses: actions/github-script@v6
+        if: ${{ steps.cache-src.outputs.cache-hit != 'true' }}
+        with:
+          script: core.setFailed('Cache hit failed')
+
+      - name: Install dependencies
+        # due to how chocolatey works, only cmd.exe is supported here
+        shell: cmd
+        run: |
+          7z x yuzu-src.zip
+          choco install vulkan-sdk
+          call refreshenv
+          echo %PATH% >> %GITHUB_PATH%
+      - name: Set up MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+      - name: Configure
+        env:
+          CC: cl.exe
+          CXX: cl.exe
+          CXXFLAGS: "/Gw /GA /Gr /Ob2"
+        working-directory: yuzu
+        run: |
+          glslangValidator --version
+          mkdir build
+          cd build
+          cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_POLICY_DEFAULT_CMP0069=NEW -DYUZU_ENABLE_LTO=ON -DYUZU_USE_BUNDLED_QT=1 -DYUZU_USE_BUNDLED_SDL2=1 -DYUZU_USE_QT_WEB_ENGINE=ON -DENABLE_COMPATIBILITY_LIST_DOWNLOAD=ON -DYUZU_ENABLE_COMPATIBILITY_REPORTING=OFF -DYUZU_TESTS=OFF -DUSE_DISCORD_PRESENCE=ON -DENABLE_QT_TRANSLATION=ON -DDISPLAY_VERSION="early-access" -DCMAKE_BUILD_TYPE=Release -DYUZU_CRASH_DUMPS=ON ..
+      - name: Build
+        working-directory: yuzu
+        run: msbuild "build/yuzu.sln" /m /p:Configuration=Release
+
+      - name: Pack
+        working-directory: yuzu
+        shell: pwsh
+        run: .\.ci\scripts\windows\upload.ps1
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows
+          path: yuzu/artifacts/
+
+  # build-linux:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: ./.github/workflows/composite-actions/merge.yml
+  #     - uses: ./.github/workflows/composite-actions/build-gcc.yml
+
+  release:
+    # needs: [build-windows, build-linux]
+    needs: [build-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "yuzu-windows.7z"
+          name: "${{ env.time }}"
+          body: "${{ env.body }}"
+          tag: "release"
+          allowUpdates: true
+          artifactErrorsFailBuild: false
+          prerelease: false
+          token: ${{ secrets.GITHUB_TOKEN }}
