@@ -47,7 +47,7 @@ jobs:
             core.exportVariable("time",new Date().toISOString().slice(0,16))
       - name: compress src folder
         run: |
-          zip yuzu-src.zip yuzu
+          zip -r yuzu-src.zip yuzu
       - name: upload src archive
         uses: actions/upload-artifact@v3
         with:
