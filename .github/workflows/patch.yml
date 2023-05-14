@@ -53,7 +53,8 @@ jobs:
       #     name: yuzu-src.zip
       #     path: yuzu-src.zip
       - name: Cache patched src
-        uses: actions/cache@v3
+        uses: actions/cache/save@v3
         with:
           path: yuzu-src.zip
           key: yuzu-src
+          enableCrossOsArchive: true
