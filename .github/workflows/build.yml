@@ -16,8 +16,8 @@ jobs:
       - name: Download patched src
         uses: actions/cache@v3
         with:
-          key: yuzu-src.zip
-          path: ./yuzu-src.zip
+          key: yuzu-src
+          path: ./
           fail-on-cache-miss: true
       - name: Install dependencies
         # due to how chocolatey works, only cmd.exe is supported here
