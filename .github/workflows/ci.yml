@@ -14,6 +14,7 @@ jobs:
           repository: yuzu-emu/yuzu
           submodules: recursive
           fetch-depth: 0
+          path: yuzu
       - name: Configure git
         run: |
           git config --global user.email "yuzu@yuzu-emu.org"
@@ -26,6 +27,7 @@ jobs:
         uses: actions/github-script@v6
         with: 
           script: |
+            process.chdir(process.cwd()+'/yuzu');
             const myExec = async (command) => await exec.getExecOutput('"C:\\Program Files\\Git\\bin\\bash.exe"',["-c",command],{silent: true}).then(result => result.stdout.trim()).catch(err => {console.log(err) ; return false })
             const prs = await github.rest.search.issuesAndPullRequests({
               q: "type:pr+is:open+repo:yuzu-emu/yuzu+label:early-access-merge,mainline-merge",
@@ -43,21 +45,27 @@ jobs:
             let body = await myExec(`GIT_BRANCH=$(git name-rev --name-only HEAD) && git log origin/$GIT_BRANCH..$GIT_BRANCH --pretty=format:"%s"`)
             core.exportVariable("body",body);
             core.exportVariable("time",new Date().toISOString().slice(0,16))
-      - uses: actions/upload-artifact@v3
+      - name: compress src folder
+        run: |
+          zip yuzu-src.zip yuzu
+      - name: upload src archive
+        uses: actions/upload-artifact@v3
         with:
-          name: yuzu-src
+          name: yuzu-src.zip
           path: ./
 
   build-windows:
     runs-on: windows-2022
+    needs: merge
     steps:
       - uses: actions/download-artifact@v3
         with:
-          name: yuzu-src
+          name: yuzu-src.zip
       - name: Install dependencies
         # due to how chocolatey works, only cmd.exe is supported here
         shell: cmd
         run: |
+          7z x yuzu-src
           choco install vulkan-sdk
           call refreshenv
           echo %PATH% >> %GITHUB_PATH%
@@ -68,22 +76,25 @@ jobs:
           CC: cl.exe
           CXX: cl.exe
           CXXFLAGS: "/Gw /GA /Gr /Ob2"
+        working-directory: yuzu
         run: |
           glslangValidator --version
           mkdir build
           cd build
           cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_POLICY_DEFAULT_CMP0069=NEW -DYUZU_ENABLE_LTO=ON -DYUZU_USE_BUNDLED_QT=1 -DYUZU_USE_BUNDLED_SDL2=1 -DYUZU_USE_QT_WEB_ENGINE=ON -DENABLE_COMPATIBILITY_LIST_DOWNLOAD=ON -DYUZU_ENABLE_COMPATIBILITY_REPORTING=OFF -DYUZU_TESTS=OFF -DUSE_DISCORD_PRESENCE=ON -DENABLE_QT_TRANSLATION=ON -DDISPLAY_VERSION="early-access" -DCMAKE_BUILD_TYPE=Release -DYUZU_CRASH_DUMPS=ON ..
       - name: Build
+        working-directory: yuzu
         run: msbuild "build/yuzu.sln" /m /p:Configuration=Release
 
       - name: Pack
+        working-directory: yuzu
         shell: pwsh
         run: .\.ci\scripts\windows\upload.ps1
       - name: Upload
         uses: actions/upload-artifact@v3
         with:
           name: windows
-          path: artifacts/
+          path: yuzu/artifacts/
 
   # build-linux:
   #   runs-on: ubuntu-latest
