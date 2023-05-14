@@ -55,15 +55,33 @@ jobs:
           name: windows
           path: yuzu/artifacts/
 
-  # build-linux:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: ./.github/workflows/composite-actions/merge.yml
-  #     - uses: ./.github/workflows/composite-actions/build-gcc.yml
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download patched src
+        uses: actions/cache/restore@v3
+        with:
+          key: yuzu-src
+          path: yuzu-src.zip
+          fail-on-cache-miss: true
+          enableCrossOsArchive: true
 
+      - name: Build
+        run: |
+          unzip yuzu-src.zip
+          cd yuzu
+          ./.ci/scripts/linux/exec.sh
+          RELEASE_NAME=$(BuildName) ./.ci/scripts/linux/upload.sh
+
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: linux
+          path: yuzu/artifacts/
+  
   release:
     # needs: [build-windows, build-linux]
-    needs: [build-windows]
+    needs: [build-linux]
     runs-on: ubuntu-latest
     steps:
       - name: Create release
