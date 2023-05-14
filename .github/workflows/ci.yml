@@ -1,0 +1,35 @@
+name: 'yuzu'
+run-name: 'Build yuzu'
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-2022
+    steps:
+      - uses: ./.github/workflows/composite-actions/merge.yml
+      - uses: ./.github/workflows/composite-actions/build-msvc.yml
+
+  # build-linux:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: ./.github/workflows/composite-actions/merge.yml
+  #     - uses: ./.github/workflows/composite-actions/build-gcc.yml
+
+  release:
+    # needs: [build-windows, build-linux]
+    needs: [build-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "yuzu-windows.7z"
+          name: "${{ env.time }}"
+          body: "${{ env.body }}"
+          tag: "release"
+          allowUpdates: true
+          artifactErrorsFailBuild: false
+          prerelease: false
+          token: ${{ secrets.GITHUB_TOKEN }}
