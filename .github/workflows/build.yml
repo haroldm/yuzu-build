@@ -14,15 +14,11 @@ jobs:
     runs-on: windows-2022
     steps:
       - name: Download patched src
-        id: cache-src
         uses: actions/cache@v3
         with:
+          key: yuzu-src.zip
           path: yuzu-src.zip
-      - uses: actions/github-script@v6
-        if: ${{ steps.cache-src.outputs.cache-hit != 'true' }}
-        with:
-          script: core.setFailed('Cache hit failed')
-
+          fail-on-cache-miss: true
       - name: Install dependencies
         # due to how chocolatey works, only cmd.exe is supported here
         shell: cmd
