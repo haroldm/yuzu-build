@@ -14,6 +14,7 @@ jobs:
           submodules: recursive
           fetch-depth: 0
           path: yuzu
+
       - name: Configure git
         run: |
           git config --global user.email "yuzu@yuzu-emu.org"
@@ -21,7 +22,7 @@ jobs:
           git config --global pull.rebase true
           git config --global rebase.autoStash true
           git config --global fetch.prune true
-      # Note: official EA builds only merge early-access-merge PRs
+
       - name: Merge mainline-merge and early-access-merge PRs
         uses: actions/github-script@v6
         with: 
@@ -41,13 +42,25 @@ jobs:
               await myExec(`git merge --squash "pr-${pn}"`)
               await myExec(`git commit -m "${pr.title}" `)
             };
+
       - name: compress src folder and build release notes
         run: |
-          cd yuzu
-          echo `date` > ./release.txt
-          echo `GIT_BRANCH=$(git name-rev --name-only HEAD) && git log origin/$GIT_BRANCH..$GIT_BRANCH --pretty=format:"%s"` >> ./release.txt
-          cd ..
-          zip -r yuzu-src.zip yuzu
+          touch ./yuzu/release.txt
+          echo `date` > ./yuzu/release.txt
+          echo `GIT_BRANCH=$(git name-rev --name-only HEAD) && git log origin/$GIT_BRANCH..$GIT_BRANCH --pretty=format:"%s"` >> ./yuzu/release.txt
+          zip -q -r yuzu-src.zip yuzu
+
+      - name: Delete previous src
+        run: |
+          gh extension install actions/gh-actions-cache
+          REPO=${{ github.repository }}
+          BRANCH=main
+          cacheKey=yuzu-src
+          gh actions-cache delete $cacheKey -R $REPO -B $BRANCH --confirm
+
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Cache patched src
         uses: actions/cache/save@v3
         with:
