@@ -58,6 +58,7 @@ jobs:
   build-linux:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: Download patched src
         uses: actions/cache/restore@v3
         with:
@@ -68,10 +69,11 @@ jobs:
 
       - name: Build
         run: |
-          unzip yuzu-src.zip
+          unzip -q yuzu-src.zip
           cd yuzu
           chmod a+x ./.ci/scripts/linux/exec.sh
           ./.ci/scripts/linux/exec.sh
+          chmod a+x ./../package_appimage.sh
           ./../package_appimage.sh
 
       - name: Upload AppImage
@@ -87,7 +89,8 @@ jobs:
           path: yuzu/release.txt
   
   release:
-    needs: [build-windows, build-linux]
+    # needs: [build-windows, build-linux]
+    needs: [build-windows]
     runs-on: ubuntu-latest
     steps:
       - name: Download release notes
