@@ -41,17 +41,13 @@ jobs:
               await myExec(`git merge --squash "pr-${pn}"`)
               await myExec(`git commit -m "${pr.title}" `)
             };
-            let body = await myExec(`GIT_BRANCH=$(git name-rev --name-only HEAD) && git log origin/$GIT_BRANCH..$GIT_BRANCH --pretty=format:"%s"`)
-            core.exportVariable("body",body);
-            core.exportVariable("time",new Date().toISOString().slice(0,16))
-      - name: compress src folder
+      - name: compress src folder and build release notes
         run: |
-          zip -r yuzu-src.zip yuzu -x yuzu/.git/**
-      # - name: upload src archive
-      #   uses: actions/upload-artifact@v3
-      #   with:
-      #     name: yuzu-src.zip
-      #     path: yuzu-src.zip
+          cd yuzu
+          echo `date` > ./release.txt
+          echo `GIT_BRANCH=$(git name-rev --name-only HEAD) && git log origin/$GIT_BRANCH..$GIT_BRANCH --pretty=format:"%s"` >> ./release.txt
+          cd ..
+          zip -r yuzu-src.zip yuzu
       - name: Cache patched src
         uses: actions/cache/save@v3
         with:

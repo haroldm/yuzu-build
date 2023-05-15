@@ -52,7 +52,7 @@ jobs:
       - name: Upload
         uses: actions/upload-artifact@v3
         with:
-          name: windows
+          name: yuzu-x64
           path: yuzu/artifacts/
 
   build-linux:
@@ -70,27 +70,41 @@ jobs:
         run: |
           unzip yuzu-src.zip
           cd yuzu
-          chmod a+x ./.ci/scripts/linux/*.sh
+          chmod a+x ./.ci/scripts/linux/exec.sh
           ./.ci/scripts/linux/exec.sh
-          RELEASE_NAME=$(BuildName) ./.ci/scripts/linux/upload.sh
+          ./../package_appimage.sh
 
-      - name: Upload
+      - name: Upload AppImage
         uses: actions/upload-artifact@v3
         with:
-          name: linux
-          path: yuzu/artifacts/
+          name: linux.appimage
+          path: yuzu/artifacts/yuzu.AppImage
+
+      - name: Upload release nmotes
+        uses: actions/upload-artifact@v3
+        with:
+          name: release.txt
+          path: yuzu/release.txt
   
   release:
-    # needs: [build-windows, build-linux]
-    needs: [build-windows]
+    needs: [build-windows, build-linux]
     runs-on: ubuntu-latest
     steps:
+      - name: Download release notes
+        uses: actions/download-artifact@v3
+        with:
+          name: release.txt
+          path: release.txt
+      - name: Populate env variables
+        run: |
+          echo "release_title=$(head -n 1 release.txt)" >> "$GITHUB_ENV"
+          echo "release_body=$(tail -n +2 release.txt)" >> "$GITHUB_ENV"
       - name: Create release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "yuzu-windows.7z"
-          name: "${{ env.time }}"
-          body: "${{ env.body }}"
+          artifacts: "linux.appimage,windows"
+          name: "${{ env.release_title }}"
+          body: "${{ env.release_body }}"
           tag: "release"
           allowUpdates: true
           artifactErrorsFailBuild: false
