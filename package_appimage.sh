@@ -19,5 +19,5 @@ echo "X-AppImage-Integrate=false" >> AppDir/org.yuzu_emu.yuzu.desktop
 
 cd ..
 
-# Copy the AppImage and update info to the artifacts directory and avoid compressing it
-cp "build/${APPIMAGE_NAME}" "${ARTIFACTS_DIR}/"
+mkdir -p artifacts
+cp "build/${APPIMAGE_NAME}" "artifacts/"

@@ -82,15 +82,14 @@ jobs:
           name: linux.appimage
           path: yuzu/artifacts/yuzu.AppImage
 
-      - name: Upload release nmotes
+      - name: Upload release notes
         uses: actions/upload-artifact@v3
         with:
           name: release.txt
           path: yuzu/release.txt
   
   release:
-    # needs: [build-windows, build-linux]
-    needs: [build-windows]
+    needs: [build-windows, build-linux]
     runs-on: ubuntu-latest
     steps:
       - name: Download release notes
