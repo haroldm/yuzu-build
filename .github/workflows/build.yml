@@ -114,10 +114,20 @@ jobs:
           echo "release_title=$(head -n 1 release.txt)" >> "$GITHUB_ENV"
           echo "$(tail -n +2 release.txt)" >release.txt
 
+      - name: Download AppImage
+        uses: actions/download-artifact@v3
+        with:
+          name: linux_build
+
+      - name: Download windows zip
+        uses: actions/download-artifact@v3
+        with:
+          name: windows_build
+
       - name: Create release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "yuzu/artifacts/yuzu-linux.AppImage,yuzu/yuzu-windows.zip"
+          artifacts: "yuzu-linux.AppImage,yuzu-windows.zip"
           name: "${{ env.release_title }}"
           bodyFile: release.txt
           tag: "${{ env.release_title }}"
