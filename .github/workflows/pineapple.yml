@@ -39,8 +39,8 @@ jobs:
           script: |
             try {
               const result = await github.rest.actions.createWorkflowDispatch({
-                owner: 'pineappleEA',
-                repo: 'pineapple-src',
+                owner: 'haroldm',
+                repo: 'yuzu-build',
                 workflow_id: 'patch.yml',
                 ref: 'main',  
                 inputs: {
