@@ -23,6 +23,7 @@ jobs:
 
       - name: Download previousrelease tag
         uses: actions/download-artifact@v3
+        continue-on-error: true
         with:
           name: pineapple-tag
 
