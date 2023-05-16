@@ -28,20 +28,10 @@ jobs:
           path: tag.txt
           fail-on-cache-miss: false
 
-      - name: Debug
-        run : |
-          cat tag.txt
-          echo "${{ steps.release_tag.outputs.result }}"
-
       - name: Handle previous and current release tags
         run : |
           echo "previous_tag=$(cat tag.txt)" >> "$GITHUB_ENV"
           echo "${{ steps.release_tag.outputs.result }}" > tag.txt
-
-      - name: Debug
-        run : |
-          echo "${{ env.previous_tag }}"
-          echo "${{ steps.release_tag.outputs.result }}"
 
       - name: Trigger new build
         if: steps.release_tag.outputs.result != env.previous_tag
@@ -67,7 +57,7 @@ jobs:
           
       - name: Delete cached release tag
         continue-on-error: true
-        if: "${{ steps.release_tag.outputs.result }} !=  ${{ env.previous_tag }}"
+        if: steps.release_tag.outputs.result != env.previous_tag
         run: |
           gh extension install actions/gh-actions-cache
           REPO=${{ github.repository }}
@@ -79,7 +69,7 @@ jobs:
     
       - name: Cache release tag
         uses: actions/cache/save@v3
-        if: "${{ steps.release_tag.outputs.result }} !=  ${{ env.previous_tag }}"
+        if: steps.release_tag.outputs.result != env.previous_tag
         with:
             path: tag.txt
             key: pineapple-tag
