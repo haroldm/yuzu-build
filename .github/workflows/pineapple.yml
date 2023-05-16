@@ -40,7 +40,7 @@ jobs:
 
       - name: Debug
         run : |
-          echo "${{ env.previous_tag }}
+          echo "${{ env.previous_tag }}"
           echo "${{ steps.release_tag.outputs.result }}"
 
       - name: Trigger new build
