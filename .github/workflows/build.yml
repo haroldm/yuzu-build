@@ -120,5 +120,5 @@ jobs:
           artifacts: "yuzu/artifacts/yuzu-linux.AppImage,yuzu/yuzu-windows.zip"
           name: "${{ env.release_title }}"
           bodyFile: release.txt
-          tag: release
+          tag: "${{ env.release_title }}"
           token: ${{ secrets.GITHUB_TOKEN }}
