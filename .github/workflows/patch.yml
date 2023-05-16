@@ -45,9 +45,11 @@ jobs:
 
       - name: compress src folder and build release notes
         run: |
-          touch ./yuzu/release.txt
-          echo `date` > ./yuzu/release.txt
-          echo `GIT_BRANCH=$(git name-rev --name-only HEAD) && git log origin/$GIT_BRANCH..$GIT_BRANCH --pretty=format:"%s"` >> ./yuzu/release.txt
+          cd yuzu
+          touch ./release.txt
+          echo `date` > ./release.txt
+          echo `GIT_BRANCH=$(git name-rev --name-only HEAD) && git log origin/$GIT_BRANCH..$GIT_BRANCH --pretty=format:"%s"` >> ./release.txt
+          cd ..
           zip -q -r yuzu-src.zip yuzu
 
       - name: Delete previous src

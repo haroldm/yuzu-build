@@ -1,5 +1,5 @@
 
-APPIMAGE_NAME="yuzu.AppImage"
+APPIMAGE_NAME="yuzu-linux.AppImage"
 
 # Build an AppImage
 cd build

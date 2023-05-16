@@ -2,7 +2,6 @@ name: 'yuzu'
 run-name: 'Build yuzu'
 
 on:
-  push:
   workflow_run:
     workflows: [patch]
     types:
@@ -20,6 +19,7 @@ jobs:
           path: yuzu-src.zip
           fail-on-cache-miss: true
           enableCrossOsArchive: true
+
       - name: Install dependencies
         # due to how chocolatey works, only cmd.exe is supported here
         shell: cmd
@@ -28,8 +28,10 @@ jobs:
           choco install vulkan-sdk
           call refreshenv
           echo %PATH% >> %GITHUB_PATH%
+
       - name: Set up MSVC
         uses: ilammy/msvc-dev-cmd@v1
+
       - name: Configure
         env:
           CC: cl.exe
@@ -41,19 +43,27 @@ jobs:
           mkdir build
           cd build
           cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_POLICY_DEFAULT_CMP0069=NEW -DYUZU_ENABLE_LTO=ON -DYUZU_USE_BUNDLED_QT=1 -DYUZU_USE_BUNDLED_SDL2=1 -DYUZU_USE_QT_WEB_ENGINE=ON -DENABLE_COMPATIBILITY_LIST_DOWNLOAD=ON -DYUZU_ENABLE_COMPATIBILITY_REPORTING=OFF -DYUZU_TESTS=OFF -DUSE_DISCORD_PRESENCE=ON -DENABLE_QT_TRANSLATION=ON -DDISPLAY_VERSION="early-access" -DCMAKE_BUILD_TYPE=Release -DYUZU_CRASH_DUMPS=ON ..
+
       - name: Build
         working-directory: yuzu
         run: msbuild "build/yuzu.sln" /m /p:Configuration=Release
 
-      - name: Pack
+      - name: Move everything needed into artifact folder
         working-directory: yuzu
         shell: pwsh
         run: .\.ci\scripts\windows\upload.ps1
+
+      - name: Pack it into a zip
+        shell: cmd
+        run: |
+          mv artifacts yuzu
+          zip -q -r yuzu-windows.zip yuzu
+
       - name: Upload
         uses: actions/upload-artifact@v3
         with:
-          name: yuzu-x64
-          path: yuzu/artifacts/
+          name: windows_build
+          path: yuzu/yuzu-windows.zip
 
   build-linux:
     runs-on: ubuntu-latest
@@ -79,13 +89,13 @@ jobs:
       - name: Upload AppImage
         uses: actions/upload-artifact@v3
         with:
-          name: linux.appimage
-          path: yuzu/artifacts/yuzu.AppImage
+          name: linux_build
+          path: yuzu/artifacts/yuzu-linux.AppImage
 
       - name: Upload release notes
         uses: actions/upload-artifact@v3
         with:
-          name: release.txt
+          name: release_notes
           path: yuzu/release.txt
   
   release:
@@ -95,16 +105,17 @@ jobs:
       - name: Download release notes
         uses: actions/download-artifact@v3
         with:
-          name: release.txt
-          path: release.txt
+          name: release_notes
+
       - name: Populate env variables
         run: |
           echo "release_title=$(head -n 1 release.txt)" >> "$GITHUB_ENV"
           echo "release_body=$(tail -n +2 release.txt)" >> "$GITHUB_ENV"
+
       - name: Create release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "linux.appimage,windows"
+          artifacts: "yuzu-linux.AppImage,yuzu-windows.zip"
           name: "${{ env.release_title }}"
           body: "${{ env.release_body }}"
           tag: "release"
