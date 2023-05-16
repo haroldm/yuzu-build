@@ -44,7 +44,7 @@ jobs:
           echo "${{ steps.release_tag.outputs.result }}"
 
       - name: Trigger new build
-        if: ${{ steps.release_tag.outputs.result }} !=  ${{ env.previous_tag }}
+        if: steps.release_tag.outputs.result != env.previous_tag
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.REPO_ACCESS_TOKEN }}
