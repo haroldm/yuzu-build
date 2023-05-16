@@ -3,6 +3,12 @@ run-name: 'Clone yuzu and patch it'
 
 on:
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag'
+        required: false
+        type: string
+        default: 'test build'
 
 jobs:
   merge:
@@ -47,10 +53,12 @@ jobs:
         run: |
           cd yuzu
           touch ./release.txt
-          echo `date` > ./release.txt
+          echo "$tag" > ./release.txt
           echo `GIT_BRANCH=$(git name-rev --name-only HEAD) && git log origin/$GIT_BRANCH..$GIT_BRANCH --pretty=format:"%s"` >> ./release.txt
           cd ..
           zip -q -r yuzu-src.zip yuzu
+        env:
+          tag: ${{ inputs.tag }}
 
       - name: Delete previous src
         run: |

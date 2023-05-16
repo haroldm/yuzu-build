@@ -1,0 +1,72 @@
+name: 'pineapple'
+run-name: 'Check if there is a new pineapple release'
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron:  '30 * * * *'
+
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get tag of the latest pineapple release
+        uses: actions/github-script@v6
+        id: release_tag
+        with:
+          result-encoding: string
+          script: |
+            return await github.rest.repos.getLatestRelease({
+              owner: 'pineappleEA',
+              repo: 'pineapple-src',
+            }).then(res => res.data.tag_name);
+
+      - name: Download previousrelease tag
+        uses: actions/download-artifact@v3
+        with:
+          name: pineapple-tag
+
+      - name: Store release tag in env variable
+        run : |
+          echo "previous_tag=$(cat tag.txt)" >> "$GITHUB_ENV"
+
+      - name: Trigger new build
+        if: "${{ steps.release_tag.outputs.result }} !=  ${{ env.previous_tag }}"
+        uses: actions/github-script@v6
+        with:
+          debug: ${{ secrets.ACTIONS_RUNNER_DEBUG }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            try {
+              const result = await github.rest.actions.createWorkflowDispatch({
+                owner: 'pineappleEA',
+                repo: 'pineapple-src',
+                workflow_id: 'patch.yml',
+                ref: 'main',  
+                inputs: {
+                  tags: ${{ steps.release_tag.outputs.result }}
+                },
+              })
+              console.log(result);
+            } catch(error) {
+              console.error(error);
+              core.setFailed(error);
+            }
+          
+      - name: Delete cached release tag
+        if: "${{ steps.release_tag.outputs.result }} !=  ${{ env.previous_tag }}"
+        run: |
+          gh extension install actions/gh-actions-cache
+          REPO=${{ github.repository }}
+          BRANCH=main
+          cacheKey=pineapple-tag
+          gh actions-cache delete $cacheKey -R $REPO -B $BRANCH --confirm
+        env:
+            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+      - name: Cache release tag
+        uses: actions/cache/save@v3
+        if: "${{ steps.release_tag.outputs.result }} !=  ${{ env.previous_tag }}"
+        with:
+            path: tag.txt
+            key: pineapple-tag
