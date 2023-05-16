@@ -27,10 +27,6 @@ jobs:
         with:
           name: pineapple-tag
 
-      - name: debug
-        run: echo ${{ steps.release_tag.outputs.result }}
-        continue-on-error: true
-
       - name: Store release tag in env variable
         run : |
           echo "previous_tag=$(cat tag.txt)" >> "$GITHUB_ENV"
@@ -48,7 +44,7 @@ jobs:
                 workflow_id: 'patch.yml',
                 ref: 'main',  
                 inputs: {
-                  tag: ${{ steps.release_tag.outputs.result }}
+                  tag: '${{ steps.release_tag.outputs.result }}'
                 },
               })
               console.log(result);
