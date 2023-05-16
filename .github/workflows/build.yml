@@ -111,16 +111,12 @@ jobs:
       - name: Populate env variables
         run: |
           echo "release_title=$(head -n 1 release.txt)" >> "$GITHUB_ENV"
-          echo "release_body=$(tail -n +2 release.txt)" >> "$GITHUB_ENV"
+          echo "$(tail -n +2 release.txt)" >release.txt
 
       - name: Create release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "yuzu-linux.AppImage,yuzu-windows.zip"
+          artifacts: "yuzu/artifacts/yuzu-linux.AppImage,yuzu/yuzu-windows.zip"
           name: "${{ env.release_title }}"
-          body: "${{ env.release_body }}"
-          tag: "release"
-          allowUpdates: true
-          artifactErrorsFailBuild: false
-          prerelease: false
+          bodyFile: release.txt
           token: ${{ secrets.GITHUB_TOKEN }}
