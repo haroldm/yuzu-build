@@ -112,7 +112,7 @@ jobs:
       - name: Populate env variables
         run: |
           echo "release_title=$(head -n 1 release.txt)" >> "$GITHUB_ENV"
-          echo "$(tail -n +2 release.txt)" >release.txt
+          echo "$(tail -n +2 release.txt)" > release.txt
 
       - name: Download AppImage
         uses: actions/download-artifact@v3

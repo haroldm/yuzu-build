@@ -28,10 +28,20 @@ jobs:
           path: tag.txt
           fail-on-cache-miss: false
 
+      - name: Debug
+        run : |
+          cat tag.txt
+          echo "${{ steps.release_tag.outputs.result }}"
+
       - name: Handle previous and current release tags
         run : |
           echo "previous_tag=$(cat tag.txt)" >> "$GITHUB_ENV"
           echo "${{ steps.release_tag.outputs.result }}" > tag.txt
+
+      - name: Debug
+        run : |
+          echo "${{ env.previous_tag }}
+          echo "${{ steps.release_tag.outputs.result }}"
 
       - name: Trigger new build
         if: "${{ steps.release_tag.outputs.result }} !=  ${{ env.previous_tag }}"
