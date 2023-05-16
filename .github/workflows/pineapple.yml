@@ -4,7 +4,7 @@ run-name: 'Check if there is a new pineapple release'
 on:
   workflow_dispatch:
   schedule:
-    - cron:  '15/45 * * * *'
+    - cron:  '15,45 * * * *'
 
 jobs:
   a:
