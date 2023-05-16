@@ -22,14 +22,16 @@ jobs:
             }).then(res => res.data.tag_name);
 
       - name: Download previousrelease tag
-        uses: actions/download-artifact@v3
-        continue-on-error: true
+        uses: actions/cache/restore@v3
         with:
-          name: pineapple-tag
+          key: pineapple-tag
+          path: tag.txt
+          fail-on-cache-miss: false
 
-      - name: Store release tag in env variable
+      - name: Handle previous and current release tags
         run : |
           echo "previous_tag=$(cat tag.txt)" >> "$GITHUB_ENV"
+          echo "${{ steps.release_tag.outputs.result }}" > tag.txt
 
       - name: Trigger new build
         if: "${{ steps.release_tag.outputs.result }} !=  ${{ env.previous_tag }}"
