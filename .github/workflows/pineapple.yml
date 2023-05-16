@@ -54,6 +54,7 @@ jobs:
             }
           
       - name: Delete cached release tag
+        continue-on-error: true
         if: "${{ steps.release_tag.outputs.result }} !=  ${{ env.previous_tag }}"
         run: |
           gh extension install actions/gh-actions-cache
