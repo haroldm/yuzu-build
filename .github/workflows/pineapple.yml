@@ -35,7 +35,7 @@ jobs:
         if: "${{ steps.release_tag.outputs.result }} !=  ${{ env.previous_tag }}"
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.REPO_ACCESS_TOKEN }}
           script: |
             try {
               const result = await github.rest.actions.createWorkflowDispatch({
