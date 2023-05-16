@@ -55,9 +55,10 @@ jobs:
 
       - name: Pack it into a zip
         shell: cmd
+        working-directory: yuzu
         run: |
           mv artifacts yuzu
-          zip -q -r yuzu-windows.zip yuzu
+          7z a yuzu-windows.zip yuzu/
 
       - name: Upload
         uses: actions/upload-artifact@v3
