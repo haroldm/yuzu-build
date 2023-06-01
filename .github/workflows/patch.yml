@@ -44,7 +44,7 @@ jobs:
             for (const pr of prs) {
               console.log(`Merge "${pr.title}" ${pr.pull_request.html_url}`);
               let pn = pr.number;
-              await myExec(`git fetch "https://github.com/yuzu-emu/yuzu.git" "pull/${pn}/head:pr-${pn}" -f --no-recurse-submodules`);
+              await myExec(`git fetch "https://github.com/yuzu-emu/yuzu.git" "pull/${pn}/head:pr-${pn}" -f`);
               await myExec(`git merge --squash "pr-${pn}"`)
               await myExec(`git commit -m "${pr.title}" `)
             };
